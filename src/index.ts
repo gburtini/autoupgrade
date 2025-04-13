@@ -83,6 +83,8 @@ async function main(): Promise<void> {
   }
 
   console.log(chalk.yellow(`Found ${outdated.length} outdated packages.`));
+  console.log(chalk.blue("Outdated packages:"));
+  outdated.forEach((pkg) => console.log(`- ${pkg}`));
   const { confirm } = await prompts({
     type: "confirm",
     name: "confirm",
