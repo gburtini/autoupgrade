@@ -5,6 +5,9 @@ import chalk from "chalk";
 import prompts from "prompts";
 import ProgressBar from "progress";
 
+const args = process.argv.slice(2);
+const checkCommand = args[0] || "npm test";
+
 function run(command: string): string | null {
   if (typeof command !== "string") {
     throw new TypeError("The 'command' parameter must be a string.");
@@ -20,7 +23,8 @@ function run(command: string): string | null {
 }
 
 function runChecks(): boolean {
-  const result = spawnSync("npm", ["run", "checks"], { stdio: "inherit" });
+  const [cmd, ...cmdArgs] = checkCommand.split(" ");
+  const result = spawnSync(cmd, cmdArgs, { stdio: "inherit" });
   return result.status === 0;
 }
 
