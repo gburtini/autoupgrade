@@ -82,9 +82,9 @@ async function upgradePackage(pkg: string): Promise<boolean> {
 }
 
 async function main(): Promise<void> {
-  console.log(chalk.blue("Running initial checks..."));
+  const spinner = ora("Running initial checks...").start();
   if (!runChecks()) {
-    console.error(chalk.red("Initial checks failed. Aborting."));
+    spinner.fail("Initial checks failed. Aborting.");
     console.error();
     console.error(
       chalk.white(
@@ -103,8 +103,7 @@ async function main(): Promise<void> {
 
     process.exit(1);
   }
-  console.log(chalk.green("Initial checks passed."));
-  console.log(chalk.blue("Checking for outdated packages..."));
+  spinner.succeed("Initial checks passed.");
 
   const outdated = getOutdatedPackages();
   if (outdated.length === 0) {
