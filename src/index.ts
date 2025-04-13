@@ -10,6 +10,27 @@ import ProgressBar from "progress";
 const args = process.argv.slice(2);
 const checkCommand = args[0] || "npm test";
 
+const packageManagerCommands = {
+  npm: {
+    outdated: "npm outdated --json",
+    install: (pkg: string) => `npm install ${pkg}@latest`,
+    restore: "git restore package.json package-lock.json",
+    installAll: "npm install",
+  },
+  yarn: {
+    outdated: "yarn outdated --json",
+    install: (pkg: string) => `yarn add ${pkg}@latest`,
+    restore: "git restore package.json yarn.lock",
+    installAll: "yarn install",
+  },
+  pnpm: {
+    outdated: "pnpm outdated --json",
+    install: (pkg: string) => `pnpm add ${pkg}@latest`,
+    restore: "git restore package.json pnpm-lock.yaml",
+    installAll: "pnpm install",
+  },
+};
+
 function detectPackageManager(): "npm" | "yarn" | "pnpm" {
   if (execSync("yarn --version", { stdio: "ignore" }).toString()) {
     return "yarn";
@@ -21,6 +42,7 @@ function detectPackageManager(): "npm" | "yarn" | "pnpm" {
 }
 
 const packageManager = detectPackageManager();
+const commands = packageManagerCommands[packageManager];
 
 function run(command: string): string | null {
   if (typeof command !== "string") {
@@ -45,14 +67,7 @@ function runChecks(): boolean {
 function getOutdatedPackages(): string[] {
   const spinner = ora("Checking for outdated packages...").start();
   try {
-    const outdatedCommand =
-      packageManager === "yarn"
-        ? "yarn outdated --json"
-        : packageManager === "pnpm"
-        ? "pnpm outdated --json"
-        : "npm outdated --json";
-
-    const output = execSync(outdatedCommand, { stdio: "pipe" })
+    const output = execSync(commands.outdated, { stdio: "pipe" })
       .toString()
       .trim();
     spinner.succeed("Outdated packages retrieved.");
@@ -83,28 +98,15 @@ function getOutdatedPackages(): string[] {
 async function upgradePackage(pkg: string): Promise<boolean> {
   console.log(chalk.blue(`\n--- Trying to update ${pkg} ---`));
   const spinner = ora(`Updating ${pkg}...`).start();
-  const installCommand =
-    packageManager === "yarn"
-      ? `yarn add ${pkg}@latest`
-      : packageManager === "pnpm"
-      ? `pnpm add ${pkg}@latest`
-      : `npm install ${pkg}@latest`;
-
-  run(installCommand);
+  run(commands.install(pkg));
   spinner.text = `Running checks for ${pkg}...`;
   if (runChecks()) {
     spinner.succeed(`✅ ${pkg} updated successfully`);
     return true;
   } else {
     spinner.fail(`❌ ${pkg} failed checks, reverting...`);
-    run("git restore package.json package-lock.json yarn.lock pnpm-lock.yaml");
-    run(
-      packageManager === "yarn"
-        ? "yarn install"
-        : packageManager === "pnpm"
-        ? "pnpm install"
-        : "npm install"
-    );
+    run(commands.restore);
+    run(commands.installAll);
     return false;
   }
 }
