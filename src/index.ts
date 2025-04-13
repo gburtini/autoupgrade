@@ -10,6 +10,18 @@ import ProgressBar from "progress";
 const args = process.argv.slice(2);
 const checkCommand = args[0] || "npm test";
 
+function detectPackageManager(): "npm" | "yarn" | "pnpm" {
+  if (execSync("yarn --version", { stdio: "ignore" }).toString()) {
+    return "yarn";
+  }
+  if (execSync("pnpm --version", { stdio: "ignore" }).toString()) {
+    return "pnpm";
+  }
+  return "npm";
+}
+
+const packageManager = detectPackageManager();
+
 function run(command: string): string | null {
   if (typeof command !== "string") {
     throw new TypeError("The 'command' parameter must be a string.");
@@ -33,7 +45,14 @@ function runChecks(): boolean {
 function getOutdatedPackages(): string[] {
   const spinner = ora("Checking for outdated packages...").start();
   try {
-    const output = execSync("npm outdated --json", { stdio: "pipe" })
+    const outdatedCommand =
+      packageManager === "yarn"
+        ? "yarn outdated --json"
+        : packageManager === "pnpm"
+        ? "pnpm outdated --json"
+        : "npm outdated --json";
+
+    const output = execSync(outdatedCommand, { stdio: "pipe" })
       .toString()
       .trim();
     spinner.succeed("Outdated packages retrieved.");
@@ -41,23 +60,19 @@ function getOutdatedPackages(): string[] {
     const json = JSON.parse(output);
     return Object.keys(json);
   } catch (err: any) {
-    // The code here is pretty silly, but `npm outdated` returns 1 when there are
-    // outdated packages, and 0 when there are none. We need to check the output
-    // to determine if this is an actual failure or not.
-
     if (err.status === 1 && err.stdout) {
       spinner.succeed("Outdated packages retrieved.");
       try {
         const json = JSON.parse(err.stdout.toString());
         return Object.keys(json);
       } catch {
-        spinner.fail("Malformed JSON in npm outdated output.");
-        console.error(chalk.red("Malformed JSON in npm outdated output."));
+        spinner.fail("Malformed JSON in outdated output.");
+        console.error(chalk.red("Malformed JSON in outdated output."));
       }
     } else {
       spinner.fail("Failed to retrieve outdated packages.");
       console.error(
-        chalk.red("Unexpected error running npm outdated:"),
+        chalk.red("Unexpected error running outdated command:"),
         err.message
       );
     }
@@ -68,15 +83,28 @@ function getOutdatedPackages(): string[] {
 async function upgradePackage(pkg: string): Promise<boolean> {
   console.log(chalk.blue(`\n--- Trying to update ${pkg} ---`));
   const spinner = ora(`Updating ${pkg}...`).start();
-  run(`npm install ${pkg}@latest`);
+  const installCommand =
+    packageManager === "yarn"
+      ? `yarn add ${pkg}@latest`
+      : packageManager === "pnpm"
+      ? `pnpm add ${pkg}@latest`
+      : `npm install ${pkg}@latest`;
+
+  run(installCommand);
   spinner.text = `Running checks for ${pkg}...`;
   if (runChecks()) {
     spinner.succeed(`✅ ${pkg} updated successfully`);
     return true;
   } else {
     spinner.fail(`❌ ${pkg} failed checks, reverting...`);
-    run("git restore package.json package-lock.json");
-    run("npm install");
+    run("git restore package.json package-lock.json yarn.lock pnpm-lock.yaml");
+    run(
+      packageManager === "yarn"
+        ? "yarn install"
+        : packageManager === "pnpm"
+        ? "pnpm install"
+        : "npm install"
+    );
     return false;
   }
 }
