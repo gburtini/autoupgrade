@@ -6,6 +6,10 @@
   "bin": {
     "autoupgrade": "build/index.mjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gburtini/autoupgrade"
+  },
   "scripts": {
     "start": "tsx src/index.ts",
     "build": "tsup",
