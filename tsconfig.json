@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // Specify ECMAScript target version
+    "module": "CommonJS", // Specify module code generation
+    "strict": true // Enable all strict type-checking options
+  },
+  "include": ["src"], // Specify files to include in the compilation
+  "exclude": ["node_modules"] // Specify files to exclude from the compilation
+}
