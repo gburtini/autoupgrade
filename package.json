@@ -4,7 +4,7 @@
   "description": "Automatically upgrade dependencies subject to a passing check command or test suite.",
   "main": "src/index.ts",
   "bin": {
-    "autoupgrade": "./build/index.mjs"
+    "autoupgrade": "build/index.mjs"
   },
   "scripts": {
     "start": "tsx src/index.ts",

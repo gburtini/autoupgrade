@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { execSync, spawnSync } from "child_process";
 
 import ora from "ora";
