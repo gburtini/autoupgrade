@@ -1,4 +1,4 @@
-import { execSync, spawnSync } from "node:child_process";
+import { execSync, spawnSync } from "child_process";
 
 function run(command: string): string | null {
   if (typeof command !== "string") {

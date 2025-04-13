@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES6", // Specify ECMAScript target version
     "module": "CommonJS", // Specify module code generation
-    "strict": true // Enable all strict type-checking options
+    "strict": true, // Enable all strict type-checking options
+    "esModuleInterop": true, // Enables emit interoperability between CommonJS and ES Modules
+    "outDir": "build" // Redirect output structure to the build directory
   },
   "include": ["src"], // Specify files to include in the compilation
   "exclude": ["node_modules"] // Specify files to exclude from the compilation
