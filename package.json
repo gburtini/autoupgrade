@@ -1,11 +1,16 @@
 {
   "name": "autoupgrade",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "Automatically upgrade dependencies subject to a passing check command or test suite.",
   "main": "src/index.ts",
+  "bin": {
+    "autoupgrade": "./build/index.js"
+  },
   "scripts": {
     "start": "tsx src/index.ts",
-    "build": "tsc"
+    "build": "tsup",
+    "clean": "rm -rf build",
+    "prepare": "npm run clean && npm run build"
   },
   "keywords": [
     "typescript",
@@ -21,6 +26,7 @@
     "@types/node": "^22.14.1",
     "@types/progress": "^2.0.7",
     "@types/prompts": "^2.4.9",
+    "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
