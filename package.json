@@ -1,10 +1,10 @@
 {
   "name": "autoupgrade",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Automatically upgrade dependencies subject to a passing check command or test suite.",
   "main": "src/index.ts",
   "bin": {
-    "autoupgrade": "./build/index.js"
+    "autoupgrade": "./build/index.mjs"
   },
   "scripts": {
     "start": "tsx src/index.ts",

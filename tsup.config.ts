@@ -5,6 +5,6 @@ export default defineConfig({
   publicDir: false,
   clean: true,
   minify: true,
-  format: ["cjs"],
+  format: ["esm"],
   outDir: "build",
 });
