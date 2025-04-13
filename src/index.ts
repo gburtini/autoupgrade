@@ -76,6 +76,14 @@ async function upgradePackage(pkg: string): Promise<boolean> {
 }
 
 async function main(): Promise<void> {
+  console.log(chalk.blue("Running initial checks..."));
+  if (!runChecks()) {
+    console.error(chalk.red("Initial checks failed. Aborting."));
+    process.exit(1);
+  }
+  console.log(chalk.green("Initial checks passed."));
+  console.log(chalk.blue("Checking for outdated packages..."));
+
   const outdated = getOutdatedPackages();
   if (outdated.length === 0) {
     console.log(chalk.green("All dependencies are up to date."));
