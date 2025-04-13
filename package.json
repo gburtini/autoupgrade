@@ -10,7 +10,8 @@
     "start": "tsx src/index.ts",
     "build": "tsup",
     "clean": "rm -rf build",
-    "prepare": "npm run clean && npm run build"
+    "prepare": "npm run clean && npm run build",
+    "test": "exit 0"
   },
   "keywords": [
     "typescript",

@@ -41,15 +41,21 @@ function getOutdatedPackages(): string[] {
     const json = JSON.parse(output);
     return Object.keys(json);
   } catch (err: any) {
-    spinner.fail("Failed to retrieve outdated packages.");
+    // The code here is pretty silly, but `npm outdated` returns 1 when there are
+    // outdated packages, and 0 when there are none. We need to check the output
+    // to determine if this is an actual failure or not.
+
     if (err.status === 1 && err.stdout) {
+      spinner.succeed("Outdated packages retrieved.");
       try {
         const json = JSON.parse(err.stdout.toString());
         return Object.keys(json);
       } catch {
+        spinner.fail("Malformed JSON in npm outdated output.");
         console.error(chalk.red("Malformed JSON in npm outdated output."));
       }
     } else {
+      spinner.fail("Failed to retrieve outdated packages.");
       console.error(
         chalk.red("Unexpected error running npm outdated:"),
         err.message
