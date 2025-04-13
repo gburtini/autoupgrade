@@ -40,6 +40,8 @@ const packageManagerCommands: PackageManagerCommands = {
 };
 
 function detectPackageManager(): PackageManager {
+  // TODO: what if there's more than one? Accept a flag for this.
+
   if (fs.existsSync("yarn.lock")) {
     return "yarn";
   }
