@@ -8,10 +8,17 @@ import prompts from "prompts";
 import ProgressBar from "progress";
 import fs from "fs";
 
-const args = process.argv.slice(2);
-const checkCommand = args[0] || "npm test";
+type PackageManager = "npm" | "yarn" | "pnpm";
+type PackageManagerCommands = {
+  [key in PackageManager]: {
+    outdated: string;
+    install: (pkg: string) => string;
+    restore: string;
+    installAll: string;
+  };
+};
 
-const packageManagerCommands = {
+const packageManagerCommands: PackageManagerCommands = {
   npm: {
     outdated: "npm outdated --json",
     install: (pkg: string) => `npm install ${pkg}@latest`,
@@ -32,7 +39,7 @@ const packageManagerCommands = {
   },
 };
 
-function detectPackageManager(): "npm" | "yarn" | "pnpm" {
+function detectPackageManager(): PackageManager {
   if (fs.existsSync("yarn.lock")) {
     return "yarn";
   }
@@ -48,6 +55,8 @@ function detectPackageManager(): "npm" | "yarn" | "pnpm" {
   return "npm";
 }
 
+const args = process.argv.slice(2);
+const checkCommand = args[0] || "npm test";
 const packageManager = detectPackageManager();
 const commands = packageManagerCommands[packageManager];
 
