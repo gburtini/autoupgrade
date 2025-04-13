@@ -6,6 +6,7 @@ import ora from "ora";
 import chalk from "chalk";
 import prompts from "prompts";
 import ProgressBar from "progress";
+import fs from "fs";
 
 const args = process.argv.slice(2);
 const checkCommand = args[0] || "npm test";
@@ -32,11 +33,17 @@ const packageManagerCommands = {
 };
 
 function detectPackageManager(): "npm" | "yarn" | "pnpm" {
-  if (execSync("yarn --version", { stdio: "ignore" }).toString()) {
+  if (fs.existsSync("yarn.lock")) {
     return "yarn";
   }
-  if (execSync("pnpm --version", { stdio: "ignore" }).toString()) {
+  if (fs.existsSync("pnpm-lock.yaml")) {
     return "pnpm";
+  }
+
+  if (!fs.existsSync("package-lock.json")) {
+    throw new Error(
+      "No package-lock.json found. Please ensure it exists before proceeding."
+    );
   }
   return "npm";
 }
