@@ -26,7 +26,7 @@ const packageManagerCommands: PackageManagerCommands = {
     installAll: "npm install",
   },
   yarn: {
-    outdated: "yarn outdated --json",
+    outdated: "yarn outdated --json", // TODO: test, I think this prints JSONL
     install: (pkg: string) => `yarn add ${pkg}@latest`,
     restore: "git restore package.json yarn.lock",
     installAll: "yarn install",
