@@ -79,6 +79,22 @@ async function main(): Promise<void> {
   console.log(chalk.blue("Running initial checks..."));
   if (!runChecks()) {
     console.error(chalk.red("Initial checks failed. Aborting."));
+    console.error();
+    console.error(
+      chalk.white(
+        "Please ensure your checks pass before proceeding with updates."
+      )
+    );
+    console.error();
+    console.error(chalk.white("The check command was:"));
+    console.error(chalk.gray(`  ${checkCommand}`));
+    console.error();
+    console.error(
+      chalk.white("You can change this by passing a command as an argument.")
+    );
+    console.error(chalk.white("Example:"));
+    console.error(chalk.gray("  $ npx autoupgrade 'npm test'"));
+
     process.exit(1);
   }
   console.log(chalk.green("Initial checks passed."));
