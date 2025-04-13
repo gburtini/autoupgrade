@@ -57,6 +57,7 @@ function detectPackageManager(): PackageManager {
   return "npm";
 }
 
+// TODO: move all this scope into `main`
 const args = process.argv.slice(2);
 const checkCommand = args[0] || "npm test";
 const packageManager = detectPackageManager();
