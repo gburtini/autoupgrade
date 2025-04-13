@@ -66,7 +66,6 @@ function getOutdatedPackages(): string[] {
 }
 
 async function upgradePackage(pkg: string): Promise<boolean> {
-  console.log(chalk.blue(`\n--- Trying to update ${pkg} ---`));
   const spinner = ora(`Updating ${pkg}...`).start();
   run(`npm install ${pkg}@latest`);
   spinner.text = `Running checks for ${pkg}...`;
