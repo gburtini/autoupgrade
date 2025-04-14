@@ -6,9 +6,62 @@ import ora from "ora";
 import chalk from "chalk";
 import prompts from "prompts";
 import ProgressBar from "progress";
+import fs from "fs";
 
+type PackageManager = "npm" | "yarn" | "pnpm";
+type PackageManagerCommands = {
+  [key in PackageManager]: {
+    outdated: string;
+    install: (pkg: string) => string;
+    restore: string;
+    installAll: string;
+  };
+};
+
+const packageManagerCommands: PackageManagerCommands = {
+  npm: {
+    outdated: "npm outdated --json",
+    install: (pkg: string) => `npm install ${pkg}@latest`,
+    restore: "git restore package.json package-lock.json",
+    installAll: "npm install",
+  },
+  yarn: {
+    outdated: "yarn outdated --json",
+    install: (pkg: string) => `yarn add ${pkg}@latest`,
+    restore: "git restore package.json yarn.lock",
+    installAll: "yarn install",
+  },
+  pnpm: {
+    outdated: "pnpm outdated --json",
+    install: (pkg: string) => `pnpm add ${pkg}@latest`,
+    restore: "git restore package.json pnpm-lock.yaml",
+    installAll: "pnpm install",
+  },
+};
+
+function detectPackageManager(): PackageManager {
+  // TODO: what if there's more than one? Accept a flag for this.
+
+  if (fs.existsSync("yarn.lock")) {
+    return "yarn";
+  }
+  if (fs.existsSync("pnpm-lock.yaml")) {
+    return "pnpm";
+  }
+
+  if (!fs.existsSync("package-lock.json")) {
+    throw new Error(
+      "No package-lock.json found. Please ensure it exists before proceeding."
+    );
+  }
+  return "npm";
+}
+
+// TODO: move all this scope into `main`
 const args = process.argv.slice(2);
 const checkCommand = args[0] || "npm test";
+const packageManager = detectPackageManager();
+const commands = packageManagerCommands[packageManager];
 
 function run(command: string): string | null {
   if (typeof command !== "string") {
@@ -33,7 +86,7 @@ function runChecks(): boolean {
 function getOutdatedPackages(): string[] {
   const spinner = ora("Checking for outdated packages...").start();
   try {
-    const output = execSync("npm outdated --json", { stdio: "pipe" })
+    const output = execSync(commands.outdated, { stdio: "pipe" })
       .toString()
       .trim();
     spinner.succeed("Outdated packages retrieved.");
@@ -41,23 +94,19 @@ function getOutdatedPackages(): string[] {
     const json = JSON.parse(output);
     return Object.keys(json);
   } catch (err: any) {
-    // The code here is pretty silly, but `npm outdated` returns 1 when there are
-    // outdated packages, and 0 when there are none. We need to check the output
-    // to determine if this is an actual failure or not.
-
     if (err.status === 1 && err.stdout) {
       spinner.succeed("Outdated packages retrieved.");
       try {
         const json = JSON.parse(err.stdout.toString());
         return Object.keys(json);
       } catch {
-        spinner.fail("Malformed JSON in npm outdated output.");
-        console.error(chalk.red("Malformed JSON in npm outdated output."));
+        spinner.fail("Malformed JSON in outdated output.");
+        console.error(chalk.red("Malformed JSON in outdated output."));
       }
     } else {
       spinner.fail("Failed to retrieve outdated packages.");
       console.error(
-        chalk.red("Unexpected error running npm outdated:"),
+        chalk.red("Unexpected error running outdated command:"),
         err.message
       );
     }
@@ -67,15 +116,15 @@ function getOutdatedPackages(): string[] {
 
 async function upgradePackage(pkg: string): Promise<boolean> {
   const spinner = ora(`Updating ${pkg}...`).start();
-  run(`npm install ${pkg}@latest`);
+  run(commands.install(pkg));
   spinner.text = `Running checks for ${pkg}...`;
   if (runChecks()) {
     spinner.succeed(`✅ ${pkg} updated successfully`);
     return true;
   } else {
     spinner.fail(`❌ ${pkg} failed checks, reverting...`);
-    run("git restore package.json package-lock.json");
-    run("npm install");
+    run(commands.restore);
+    run(commands.installAll);
     return false;
   }
 }
